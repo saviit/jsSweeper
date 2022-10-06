@@ -201,12 +201,3 @@ function update() {
     game.update()
     draw();
 }
-
-function initialize(cellSize, canvas, worldsize, game) {
-    worldsize.x = canvas.width / cellSize;
-    worldsize.y = canvas.height / cellSize;
-
-    game = new Game(worldsize, minesInPlay);
-    game.populate();
-    game.initBoard();
-}
