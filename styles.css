@@ -1,0 +1,20 @@
+:root {
+    font-family: 'Agency FB';
+}
+
+body {
+    text-align: center;
+}
+
+.content {
+    width: 100vw;
+    height: 100vh;
+}
+
+#game {
+    z-index: 1;
+}
+
+#board {
+    z-index: 0;
+}
