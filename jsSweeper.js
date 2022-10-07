@@ -21,10 +21,10 @@ function RandomInt(min, max) {
 
 class Cell {
     constructor(x, y, w, h, color) {
-        this.x = x * scalefactor;
-        this.y = y * scalefactor;
-        this.width = w * scalefactor;
-        this.height = h * scalefactor;
+        this.x = x * cellSize;
+        this.y = y * cellSize;
+        this.width = w * cellSize;
+        this.height = h * cellSize;
         this.color = color;
         
         this.flagged = false;
@@ -33,9 +33,9 @@ class Cell {
     }
 
     draw(context) {
-        context.fillStyle = 'gray';
+        context.fillStyle = colors[RandomInt(0, colors.length)];//'gray';
         context.fillRect(this.x, this.y, this.width, this.height);
-        context.fillStyle = this.color;
+        context.fillStyle = colors[this.number];
         if (!this.hasMine) {
             context.fillText(''+this.number, this.x + Math.floor(this.width/2), this.y + Math.floor(this.y/2));
         }
@@ -48,6 +48,7 @@ class Cell {
         this.flagged = !this.flagged;
     }
 
+    hasMine() { return this.hasMine };
 
     checkNeighbours(game) {
         if (this.hasMine) {
@@ -55,8 +56,8 @@ class Cell {
             this.color = colors[this.number];
             return; 
         }
-        let x = Math.floor(this.x / scalefactor);
-        let y = Math.floor(this.y / scalefactor);
+        let x = Math.floor(this.x / cellSize);
+        let y = Math.floor(this.y / cellSize);
         let mines = 0;
 
         let ny = (y - 1);
@@ -64,19 +65,22 @@ class Cell {
         let wx = (x - 1);
         let ex = (x + 1);
 
-        if (wx >= 0 && ny >= 0 && ex <= worldsize.x && sy <= worldsize.y) {
-            if (game.cells[ny][wx].hasMine) mines++;
+        if (ny >= 0) {
+            if (wx >= 0 && game.cells[ny][wx].hasMine) mines++;
             if (game.cells[ny][x].hasMine) mines++;
-            if (game.cells[ny][ex].hasMine) mines++;
-            if (game.cells[y][wx].hasMine) mines++;
-            if (game.cells[y][ex].hasMine) mines++;
-            if (game.cells[sy][wx].hasMine) mines++;
-            if (game.cells[sy][x].hasMine) mines++;
-            if (game.cells[sy][ex].hasMine) mines++;
+            if (ex < worldsize.x && game.cells[ny][ex].hasMine) mines++;
         }
+        if (sy < worldsize.y) {
+            if (wx >= 0 && game.cells[sy][wx].hasMine) mines++;
+            if (game.cells[sy][x].hasMine) mines++;
+            if (ex < worldsize.x && game.cells[sy][ex].hasMine) mines++;
+        }
+        if (wx >= 0 && game.cells[y][wx].hasMine) mines++;
+        if (ex < worldsize.x && game.cells[y][ex].hasMine) mines++;
+
         
         this.number = mines;
-        this.color = colors[this.number];
+        // this.color = colors[this.number];
     }
 }
 
@@ -92,7 +96,8 @@ class Game {
     populate() {
         for (let i = 0; i < worldsize.y; i++) {
             for (let j = 0; j < worldsize.x; j++) {
-                this.cells[i][j] = new Cell(j, i, 1, 1, 'gray');
+                let cnum = RandomInt(0, colors.length);
+                this.cells[i][j] = new Cell(j, i, 1, 1, colors[cnum]);
             }
         }
     }
@@ -154,25 +159,31 @@ var game;
 
 var canvas; //= document.getElementById("game");
 var context; //= canvas.getContext('2d');
+var debugtxt;
+var info;
 
 window.onload = function() {
 
     minesInPlay = document.getElementById("minesInPlay").value;
     canvas = document.getElementById("game");
-    board = document.getElementById("board");
+    // board = document.getElementById("board");
     context = canvas.getContext('2d');
-    bctx = board.getContext('2d');
-    
+    // bctx = board.getContext('2d');
+    debugtxt = document.getElementById("debug");
+    info = document.getElementById("info");
+    info.textContent = "";
+
     context.fillStyle = 'gray';
     context.fillRect(0, 0, canvas.width, canvas.height);
     
     worldsize.x = canvas.width / cellSize;
     worldsize.y = canvas.height / cellSize;
 
+    info.textContent += "Creating new game instance...";
     game = new Game(worldsize, false);
-    game.populate();
     game.initBoard();
-
+    info.textContent += "done!\n";
+    
     //add key listeners
     this.canvas.addEventListener("click", function(ev) {
         let x = ev.offsetX;
@@ -180,6 +191,7 @@ window.onload = function() {
         let c = game.cells[Math.floor(y / cellSize)][Math.floor(x / cellSize)];
         if (c instanceof Cell) {
             // TODO check for mines
+            info.textContent += "Clicked on Cell #" + c.number + "\n";
         }
         update();
         ev.preventDefault();

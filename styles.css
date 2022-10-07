@@ -18,3 +18,11 @@ body {
 #board {
     z-index: 0;
 }
+
+#info {
+    background-color: black;
+    color: limegreen;
+    resize: none;
+    overflow-y: scroll;
+    scroll-behavior: auto;
+}
