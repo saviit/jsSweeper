@@ -4,19 +4,32 @@
 
 body {
     text-align: center;
+    margin: auto;
 }
 
-.content {
-    width: 100vw;
-    height: 100vh;
+#content {
+    margin: auto;
+    /* width: 100vw; */
+    width: 800px;
+    height: 70vh;
+    position: relative;
+    display: block;
 }
 
 #game {
+    /* background: rgba(211, 211, 211, 1); */
     z-index: 1;
+    position: absolute;
+    left: 0;
+    top: 10%;
 }
 
 #board {
+    /* background: rgba(255, 0, 0, .5); */
     z-index: 0;
+    position: absolute;
+    left: 0;
+    top: 10%;
 }
 
 #info {
