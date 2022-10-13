@@ -40,11 +40,10 @@ class CellButton {
         this.width = w * cellSize;
         this.height = h * cellSize;
         this.color = color;
-        this.pressed = false;
         this.opened = false;
         this.flagged = false;
 
-        // draw coordinate shortcuts (calculate once)
+        // draw-coordinate shortcuts (calculate only once)
         this.outerNW = new Point(this.x, this.y);
         this.outerNE = new Point(this.x + this.width, this.y);
         this.outerSW = new Point(this.x, this.y + this.height);
@@ -53,25 +52,6 @@ class CellButton {
         this.innerNE = new Point(this.x + Math.floor(this.width * 0.8), this.y + Math.floor(this.height * 0.2));
         this.innerSW = new Point(this.x + Math.floor(this.width * 0.2), this.y + Math.floor(this.height * 0.8));
         this.innerSE = new Point(this.x + Math.floor(this.width * 0.8), this.y + Math.floor(this.height * 0.8));
-    }
-
-    draw(context) {
-        if (!this.opened) {
-            if (this.pressed) {
-                if (this.flagged) { this.drawFlaggedInverse(context); }
-                else this.drawInverse(context);
-            }
-            else { 
-                if (this.flagged) { this.drawFlagged(context); } 
-                else this.drawNormal(context); 
-            }
-        }
-        else {
-            // draw transparent
-            this.drawOpened(context);
-
-        }
-        
     }
 
     drawMiddle(context) {
@@ -129,14 +109,14 @@ class CellButton {
     drawFlag(context, color) {
         // draw flag
         context.fillStyle = color;
-        context.fillRect(this.x + Math.floor(this.width * 0.4),
-                         this.y + Math.floor(this.height * 0.4),
-                         4, Math.floor(this.height * 0.4));
+        context.fillRect(this.x + Math.floor(this.width * 0.35),
+                         this.y + Math.floor(this.height * 0.25),
+                         3, Math.floor(this.height * 0.5));
         context.beginPath();
-        context.moveTo(this.x + Math.floor(this.width * 0.4) + 4, 
-                       this.y + Math.floor(this.height * 0.4));
-        context.lineTo(this.x + Math.floor(this.width * 0.6), this.y + Math.floor(this.height * 0.3));
-        context.lineTo(this.x + Math.floor(this.width * 0.4) + 4, this.y + Math.floor(this.height * 0.5));
+        context.moveTo(this.x + Math.floor(this.width * 0.35) + 3, 
+                       this.y + Math.floor(this.height * 0.25));
+        context.lineTo(this.x + Math.floor(this.width * 0.7), this.y + Math.floor(this.height * 0.4));
+        context.lineTo(this.x + Math.floor(this.width * 0.35) + 3, this.y + Math.floor(this.height * 0.55));
         context.closePath();
         context.fill();
     }
@@ -160,6 +140,18 @@ class CellButton {
         this.flagged = !this.flagged;
     }
 
+    draw(context) {
+        if (!this.opened) {
+            if (this.flagged) { this.drawFlagged(context); }
+            else { this.drawNormal(context); }
+            
+        }
+        else {
+            // draw transparent
+            this.drawOpened(context);
+        }
+    }
+
 }
 
 
@@ -170,7 +162,7 @@ class Cell {
         this.width = w * cellSize;
         this.height = h * cellSize;
         this.color = color;
-        
+        this.neighbours = [];
         this.flagged = false;
         this.number = 0; // 0 = empty; 1-8 = num of neighboring mines; 9 = mine
         this.hasMine = false;
@@ -202,11 +194,34 @@ class Cell {
         }
     }
 
-    toggleFlagged() {
-        this.flagged = !this.flagged;
-    }
+    // toggleFlagged() {
+    //     this.flagged = !this.flagged;
+    // }
 
     hasMine() { return this.hasMine };
+
+    gatherNeighbours(game) {
+        let x = Math.floor(this.x / cellSize);
+        let y = Math.floor(this.y / cellSize);
+        let ny = (y - 1);
+        let sy = (y + 1);
+        let wx = (x - 1);
+        let ex = (x + 1);
+
+        if (ny >= 0) { // north row
+            if (wx >= 0) this.neighbours.push(game.cells[ny][wx]);
+            this.neighbours.push(game.cells[ny][x]);
+            if (ex < worldsize.x) this.neighbours.push(game.cells[ny][ex]);
+        }
+        if (sy < worldsize.y) { // south row
+            if (wx >= 0) this.neighbours.push(game.cells[sy][wx]);
+            this.neighbours.push(game.cells[sy][x]);
+            if (ex < worldsize.x) this.neighbours.push(game.cells[sy][ex]);
+        }
+        // middle row
+        if (wx >= 0) this.neighbours.push(game.cells[y][wx]);
+        if (ex < worldsize.x) this.neighbours.push(game.cells[y][ex]);
+    }
 
     checkNeighbours(game) {
         if (this.hasMine) {
@@ -214,29 +229,31 @@ class Cell {
             this.color = colors[this.number];
             return; 
         }
-        let x = Math.floor(this.x / cellSize);
-        let y = Math.floor(this.y / cellSize);
+        // let x = Math.floor(this.x / cellSize);
+        // let y = Math.floor(this.y / cellSize);
+        // let mines = 0;
+
+        // let ny = (y - 1);
+        // let sy = (y + 1);
+        // let wx = (x - 1);
+        // let ex = (x + 1);
+
+        // if (ny >= 0) {
+        //     if (wx >= 0 && game.cells[ny][wx].hasMine) mines++;
+        //     if (game.cells[ny][x].hasMine) mines++;
+        //     if (ex < worldsize.x && game.cells[ny][ex].hasMine) mines++;
+        // }
+        // if (sy < worldsize.y) {
+        //     if (wx >= 0 && game.cells[sy][wx].hasMine) mines++;
+        //     if (game.cells[sy][x].hasMine) mines++;
+        //     if (ex < worldsize.x && game.cells[sy][ex].hasMine) mines++;
+        // }
+        // if (wx >= 0 && game.cells[y][wx].hasMine) mines++;
+        // if (ex < worldsize.x && game.cells[y][ex].hasMine) mines++;
         let mines = 0;
-
-        let ny = (y - 1);
-        let sy = (y + 1);
-        let wx = (x - 1);
-        let ex = (x + 1);
-
-        if (ny >= 0) {
-            if (wx >= 0 && game.cells[ny][wx].hasMine) mines++;
-            if (game.cells[ny][x].hasMine) mines++;
-            if (ex < worldsize.x && game.cells[ny][ex].hasMine) mines++;
+        for (let c of this.neighbours) {
+            if (c.hasMine) mines++;
         }
-        if (sy < worldsize.y) {
-            if (wx >= 0 && game.cells[sy][wx].hasMine) mines++;
-            if (game.cells[sy][x].hasMine) mines++;
-            if (ex < worldsize.x && game.cells[sy][ex].hasMine) mines++;
-        }
-        if (wx >= 0 && game.cells[y][wx].hasMine) mines++;
-        if (ex < worldsize.x && game.cells[y][ex].hasMine) mines++;
-
-        
         this.number = mines;
         // this.color = colors[this.number];
     }
@@ -264,6 +281,7 @@ class Game {
     setCellProperties() {
         for (let i = 0; i < worldsize.y; i++) {
             for (let j = 0; j < worldsize.x; j++) {
+                this.cells[i][j].gatherNeighbours(this);
                 this.cells[i][j].checkNeighbours(this);
             }
         }
@@ -327,6 +345,17 @@ class Game {
         this.getCellBtnAt(btn.x, btn.y).opened = true;
     }
 
+    openConnectedEmpties(btn) {
+        let currCell = this.getCellAt(btn.x, btn.y);
+        for (let c of currCell.neighbours) {
+            let cb = this.getCellBtnAt(c.x, c.y);
+            if (cb.opened || cb.flagged) continue;
+            if (c.number === 0) {
+                this.openCellBtn(cb);
+                this.openConnectedEmpties(cb);
+            }
+        }
+    }
 }
 
 
@@ -382,56 +411,54 @@ window.onload = function() {
         let b = game.getCellBtnAt(x, y);
         let mbuttonpressed = ev.button;
         if (mbuttonpressed == 0) { // primary mouse button, usually left
-            info.textContent += "MButton: 0\n";
-            if (c instanceof Cell) {
-                if (c.flagged) { } // was flagged so ignore
-                // TODO check for mines
-                if (c.hasMine && !c.flagged) {
-                    info.textContent += "GAME OVER!\n";
+            
+            if (!b.flagged && !ev.ctrlKey) {
+                game.openCellBtn(b);
+                if (c.number == 0) {
+                    game.openConnectedEmpties(b);
                 }
-                info.textContent += "Cell #: " + c.number + "\n";
+                update();
             }
-            if (b instanceof CellButton) {
-                if (!b.flagged) {
-                    game.openCellBtn(b);
-                    update();
-                }
+            if (ev.ctrlKey) {
+                b.toggleFlagged();
+                info.textContent += "Flagged cell at (" + x + ", " + y + ")\n"
+                update();
             }
+            
         }
-        if (mbuttonpressed == 2) { // secondary mouse button, usually right
-            ev.preventDefault();
-            info.textContent += "MButton: 2\n";
-            c.toggleFlagged();
-            b.toggleFlagged();
-        }
+        // if (mbuttonpressed == 0 && ev.ctrlKey) {
+        //     b.toggleFlagged();
+        //     update();
+        //     // ev.preventDefault();
+        // }
 
         update();
         ev.preventDefault();
         // ev.stopImmediatePropagation();
     });
     // animate CellButton
-    this.gameCanvas.addEventListener("mousedown", function(ev) {
-        let x = ev.offsetX;
-        let y = ev.offsetY;
-        cellButtonLastPressed = game.getCellBtnAt(x, y);
-        // cellButtonLastPressed.pressed = true;
-        // update();
-    });
+    // this.gameCanvas.addEventListener("mousedown", function(ev) {
+    //     let x = ev.offsetX;
+    //     let y = ev.offsetY;
+    //     cellButtonLastPressed = game.getCellBtnAt(x, y);
+    //     cellButtonLastPressed.pressed = true;
+    //     update();
+    // });
     // animate CellButton, check for Bomb trigger
-    this.gameCanvas.addEventListener("mouseup", function(ev) {
-        let x = ev.offsetX;
-        let y = ev.offsetY;
-        let b = game.getCellBtnAt(x, y);
-        //if (cellButtonLastPressed.x == b.x && cellButtonLastPressed.y == b.y) {
-        //    cellButtonLastPressed.pressed = false;
-        //} else b.pressed = false;
-        //update();
-    });
-    this.gameCanvas.addEventListener("mousemove", function(ev) {
-        let x = ev.offsetX;
-        let y = ev.offsetY;
-        debugtxt.textContent = "Mouse X, Y: " + x + ", " + y;
-    });
+    // this.gameCanvas.addEventListener("mouseup", function(ev) {
+    //     let x = ev.offsetX;
+    //     let y = ev.offsetY;
+    //     let b = game.getCellBtnAt(x, y);
+    //     if (cellButtonLastPressed.x == b.x && cellButtonLastPressed.y == b.y) {
+    //        cellButtonLastPressed.pressed = false;
+    //     } else b.pressed = false;
+    //     update();
+    // });
+    // this.gameCanvas.addEventListener("mousemove", function(ev) {
+    //     let x = ev.offsetX;
+    //     let y = ev.offsetY;
+    //     debugtxt.textContent = "Mouse X, Y: " + x + ", " + y;
+    // });
     
     update();
 }
